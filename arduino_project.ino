@@ -1,6 +1,16 @@
+// 1 input waarde voor alle knoppen
 int knop = A0;
-int buzzer = 2;
 
+// ledjes
+int led1 = 2;
+int led2 = 3;
+int led3 = 4;
+int led4 = 5;
+
+// buzzer
+int buzzer = 10;
+
+// knop handling
 String oude_knop = "0";
 String nieuwe_knop = "0";
 
@@ -10,9 +20,10 @@ int range_knop2[] = {250, 300};
 int range_knop3[] = {140, 230};
 int range_knop4[] = {80, 130};
 
-// sequence
-int count = 0;
+// sequence en input (strings zijn handiger dan lists)
 String sequence = "";
+int count = 0;
+
 String input = "";
 int input_count = 0;
 
@@ -20,9 +31,16 @@ int input_count = 0;
 void setup () {
   Serial.begin(9600);
   pinMode(knop, INPUT);
+
+  pinMode(led1, OUTPUT);
+  pinMode(led2, OUTPUT);
+  pinMode(led3, OUTPUT);
+  pinMode(led4, OUTPUT);
+
   pinMode(buzzer, OUTPUT);
   
   randomSeed(analogRead(1));
+
   // Genereer eerste waarde
   append_sequence();
 }
@@ -58,8 +76,15 @@ String get_knop(int waarde) {
   if (waarde > range_knop2[0] && waarde < range_knop2[1]) _knop = "2";
   if (waarde > range_knop3[0] && waarde < range_knop3[1]) _knop = "3";
   if (waarde > range_knop4[0] && waarde < range_knop4[1]) _knop = "4";
-  
+
+  // audiovisuele feedback
+  generate_sound_and_light(_knop);
+
   return _knop;
+}
+
+void generate_sound_and_light(int _knop) {
+  
 }
 
 void append_sequence() {
@@ -67,6 +92,9 @@ void append_sequence() {
 
   String v = String(random(4)+1);
   sequence += v;
+
+  // audiovisuele weergave van de sequence
+  play_sequence();
   Serial.println("Sequence: " + sequence);
 
   // reset input zodat user weer opnieuw moet beginnen
@@ -74,19 +102,28 @@ void append_sequence() {
   input_count = 0;
 }
 
+void play_sequence() {
+  for (int i = 0; i < count; i++) {
+    generate_sound_and_light(sequence[i]);
+  }
+}
+
 void game_over() {
   Serial.println("GAME OVER");
-
-//  digitalWrite(buzzer, 1);
-  delay(1000);
-  digitalWrite(buzzer, 0);
+  generate_sound_and_light(0);
 }
 
 void play_again() {
+  resetFunc();
+  /*
   sequence = "";
   count = 0;
   append_sequence();
 
   input = "";
   input_count = 0;
+  */
 }
+
+// Reset function at address 0
+void(* resetFunc)(void) = 0;
