@@ -1,5 +1,0 @@
-basisstroom * beta = stroom in collector
-Ic = stroom over de weerstand aan de led
-Ib = stroom over de weerstand aan de basis
-
-beta = Ic / Ib
