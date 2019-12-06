@@ -1,2 +1,3 @@
 # arduino_project
-arduino project for prototyping class
+
+memory game that runs on the arduino uno
