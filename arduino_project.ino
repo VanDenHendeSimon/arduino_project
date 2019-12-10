@@ -39,10 +39,8 @@ void setup () {
   for(int i=0; i<4; i++) {
     pinMode(leds[i], OUTPUT);
   }
-  // Genereer eerste waarde
-  Serial.println("Spel is begonnen!");
-  randomSeed(analogRead(1));
-  append_sequence();
+
+  start_game(false);
 }
 
 void loop() {
@@ -67,13 +65,13 @@ void loop() {
   } else {
     // restart with button
     if(analogRead(knop_input) > 0) {
-      replay();
+      start_game(true);
     }
     // restart with terminal input
     if(Serial.available()) {
       byte serial_input = Serial.read();
       if(serial_input == 121) {
-        replay();
+        start_game(true);
       } else if(serial_input == 110) {
         // Acknowledge user input
         Serial.println("n");
@@ -231,18 +229,22 @@ int led_pin(String knop) {
   return knop.toInt() + 1;
 }
 
-void replay() {
-  Serial.println("y");
-  Serial.println("Nieuw spel is begonnen!");
-
+void start_game(bool nieuw) {
   generate_sound_and_light("-3");
   delay(500);
-        
-  sequence = "";
-  count = 0;
-  append_sequence();
 
-  input = "";
-  input_count = 0;
-  gameOver = false;
+  if(nieuw) {
+    Serial.println("y");
+    Serial.println("Nieuw spel is begonnen!");
+
+    sequence = "";
+    count = 0;
+  
+    input = "";
+    input_count = 0;
+    gameOver = false;
+  }
+
+  randomSeed(analogRead(1));
+  append_sequence();
 }
