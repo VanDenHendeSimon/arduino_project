@@ -1,7 +1,7 @@
 // 1 input waarde voor alle knoppen
 int knop = A0;
 
-// ledjes
+// ledjes (pin 1 is kapot)
 int led1 = 2;
 int led2 = 3;
 int led3 = 4;
@@ -9,6 +9,7 @@ int led4 = 5;
 
 // buzzer
 int buzzer = 10;
+int sounds[] = {200, 400, 600, 800, 1000};
 
 // knop handling
 String oude_knop = "0";
@@ -52,6 +53,7 @@ void loop() {
 
     input += nieuwe_knop;
     input_count += 1;
+    generate_sound_and_light(nieuwe_knop);
 
     if(input[input_count - 1] != sequence[input_count - 1]) {
       game_over();
@@ -83,8 +85,17 @@ String get_knop(int waarde) {
   return _knop;
 }
 
-void generate_sound_and_light(int _knop) {
-  
+void generate_sound_and_light(String _knop) {
+  if (_knop == "-1") {
+    // Game over
+  } else {
+    int led_pin = _knop.toInt() + 1;
+
+    digitalWrite(led_pin, 1);
+    analogWrite(buzzer, sounds[led_pin-2]);
+    delay(500);
+    digitalWrite(led_ping, 0); 
+  }
 }
 
 void append_sequence() {
@@ -98,6 +109,7 @@ void append_sequence() {
   Serial.println("Sequence: " + sequence);
 
   // reset input zodat user weer opnieuw moet beginnen
+  // nadat de sequence is afgespeeld zodat inputs tijdens weg zijn
   input = "";
   input_count = 0;
 }
@@ -110,20 +122,14 @@ void play_sequence() {
 
 void game_over() {
   Serial.println("GAME OVER");
-  generate_sound_and_light(0);
+  generate_sound_and_light("-1");
 }
 
 void play_again() {
-  resetFunc();
-  /*
   sequence = "";
   count = 0;
   append_sequence();
 
   input = "";
   input_count = 0;
-  */
 }
-
-// Reset function at address 0
-void(* resetFunc)(void) = 0;
