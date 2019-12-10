@@ -1,5 +1,5 @@
 // 1 input waarde voor alle knoppen
-int knop = A0;
+int knop_input = A0;
 
 // ledjes (pin 1 is kapot)
 int leds[] = {2, 3, 4, 5};
@@ -27,35 +27,32 @@ int input_count = 0;
 
 bool gameOver = false;
 
+// Reset pin
+int reset_pin = 12;
 
 void setup () {
   Serial.begin(9600);
-  pinMode(knop, INPUT);
 
+  // pinModes
+  pinMode(knop_input, INPUT);
+  pinMode(buzzer, OUTPUT);
   for(int i=0; i<4; i++) {
     pinMode(leds[i], OUTPUT);
   }
 
-  pinMode(buzzer, OUTPUT);
-  
-  randomSeed(analogRead(1));
-
   // Genereer eerste waarde
+  randomSeed(analogRead(1));
   append_sequence();
 }
 
 void loop() {
-  nieuwe_knop = get_knop(analogRead(knop));
+  nieuwe_knop = get_knop(analogRead(knop_input));
 
   if (nieuwe_knop != oude_knop && nieuwe_knop != "0"){
-    input += nieuwe_knop;
-    input_count += 1;
-    // audiovisuele feedback
-    generate_sound_and_light(nieuwe_knop);
-    Serial.print(nieuwe_knop);
+    process_input(nieuwe_knop);
 
     if(input[input_count - 1] != sequence[input_count - 1]) {
-      game_over(nieuwe_knop);
+      game_over();
     }
 
     if(!gameOver) {
@@ -74,7 +71,7 @@ void loop() {
         // Acknowledge user input
         Serial.println("y");
         generate_sound_and_light("-3");
-        delay(250);
+        delay(500);
         replay();
       } else if(serial_input == 110) {
         // Acknowledge user input
@@ -88,31 +85,40 @@ void loop() {
   delay(20);
 }
 
-String get_knop(int waarde) {
-  String _knop = "0";
-  
-  if (waarde > range_knop1[0] && waarde < range_knop1[1]) _knop = "1";
-  if (waarde > range_knop2[0] && waarde < range_knop2[1]) _knop = "2";
-  if (waarde > range_knop3[0] && waarde < range_knop3[1]) _knop = "3";
-  if (waarde > range_knop4[0] && waarde < range_knop4[1]) _knop = "4";
+void process_input(String knop) {
+  input += knop;
+  input_count += 1;
 
-  return _knop;
+  // audiovisuele feedback
+  generate_sound_and_light(knop);
+  Serial.print(knop);
 }
 
-void generate_sound_and_light(String _knop) {
-  if (_knop == "-1") {
+String get_knop(int waarde) {
+  String knop = "0";
+  
+  if (waarde > range_knop1[0] && waarde < range_knop1[1]) knop = "1";
+  if (waarde > range_knop2[0] && waarde < range_knop2[1]) knop = "2";
+  if (waarde > range_knop3[0] && waarde < range_knop3[1]) knop = "3";
+  if (waarde > range_knop4[0] && waarde < range_knop4[1]) knop = "4";
+
+  return knop;
+}
+
+void generate_sound_and_light(String knop) {
+  if (knop == "-1") {
     // Game over
      play_game_over();
-  } else if(_knop == "-2") {
+  } else if(knop == "-2") {
     // Correct sequence
     play_right_answer();
-  } else if(_knop == "-3") {
+  } else if(knop == "-3") {
     // Player doesnt want to play again
-    play_after_input();
+    play_after_input(4);
   }
   else {
     // Some button was pressed
-    play_input(_knop);
+    play_input(knop);
   }
 }
 
@@ -140,7 +146,8 @@ void off_one_at_a_time() {
   // een voor een uit
   for(int i=0; i<4; i++) {
     digitalWrite(leds[i], 0);
-    delay(60);
+    play_sound(i+2, 10000);
+    //delay(60);
   }
 }
 
@@ -148,17 +155,12 @@ void play_game_over() {
   // Flikker 6x
   for(int i=0; i<6; i++) {
     all_leds_off();
-    delay(150);
+    play_sound(3, 30000);
+
     all_leds_on();
-    delay(150);
+    play_sound(4, 30000);
   }
-  // Een voor een uit, 4 keer
-  for(int j=0; j<4; j++) {
-    all_leds_on();
-    delay(20);
-    off_one_at_a_time();
-    delay(50);
-  }
+  play_after_input(2);
 }
 
 void play_sound(int pin, int duration) {
@@ -176,8 +178,8 @@ void play_sound(int pin, int duration) {
   }
 }
 
-void play_input(String _knop) {
-  int pin = led_pin(_knop);
+void play_input(String knop) {
+  int pin = led_pin(knop);
 
   digitalWrite(pin, 1);
   play_sound(pin, 30000); // 250.000 is the total delay in microseconds
@@ -187,12 +189,12 @@ void play_input(String _knop) {
   delay(250);
 }
 
-void play_after_input() {
-  for(int i=0; i<2; i++) {
+void play_after_input(int amount) {
+  for(int j=0; j<amount; j++) {
     all_leds_on();
-    delay(150);
-    all_leds_off();
-    delay(150);
+    delay(20);
+    off_one_at_a_time();
+    delay(50);
   }
 }
 
@@ -219,7 +221,7 @@ void play_sequence() {
   }
 }
 
-void game_over(String laatste_knop) {
+void game_over() {
   Serial.println("\nGAME OVER");
   gameOver = true;
   generate_sound_and_light("-1");
@@ -227,8 +229,8 @@ void game_over(String laatste_knop) {
   Serial.print("Do you want to play again? [y/n] >> ");
 }
 
-int led_pin(String _knop) {
-  return _knop.toInt() + 1;
+int led_pin(String knop) {
+  return knop.toInt() + 1;
 }
 
 void replay() {
