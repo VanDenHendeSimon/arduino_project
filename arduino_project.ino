@@ -27,9 +27,6 @@ int input_count = 0;
 
 bool gameOver = false;
 
-// Reset pin
-int reset_pin = 12;
-
 void setup () {
   Serial.begin(9600);
 
