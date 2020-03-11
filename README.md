@@ -2,5 +2,5 @@
 
 memory game that runs on the arduino uno
 
-![Screenshot](Screenshot1.png)  
-![Screenshot](Screenshot2.png)
+![Screenshot](Screenshot_1.png)  
+![Screenshot](Screenshot_2.png)
